@@ -2,10 +2,10 @@ package main
 
 import (
 	"C"
-	"fmt"
 
 	"gocv.io/x/gocv"
 )
+import "fmt"
 
 type Pixel struct {
 	R float64
@@ -45,7 +45,9 @@ func main() {
 
 	// ENCRYPTION
 
-	getParameters(prnusB, numUsers)
+	res1 := getParameters(prnusB, numUsers)
+	res2 := getParameters(prnusG, numUsers)
+	res3 := getParameters(prnusR, numUsers)
 
 	// AGREGATION
 
@@ -53,8 +55,10 @@ func main() {
 	agreg2 := agregation(prnusG, numUsers)
 	agreg3 := agregation(prnusR, numUsers)
 
-	fmt.Println(len(agreg1), len(agreg1[0]))
-	fmt.Println(len(agreg2))
-	fmt.Println(len(agreg3))
+	checkResults3(res1, agreg1)
+	checkResults3(res2, agreg2)
+	checkResults3(res3, agreg3)
+
+	fmt.Print("\nFINISH\n")
 
 }

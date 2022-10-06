@@ -25,7 +25,7 @@ type party struct {
 	NumCol int         // NumRow real
 }
 
-func getParameters(prnus [][][]PixelGray, N int) {
+func getParameters(prnus [][][]PixelGray, N int) [][]float64 {
 
 	// EN UN CIPHERTEXT:
 	// Con CKKS -> 2^LogSlots (aquí 2048 valores)
@@ -49,8 +49,6 @@ func getParameters(prnus [][][]PixelGray, N int) {
 
 	// Target private and public keys
 	tsk, tpk := ckks.NewKeyGenerator(params).GenKeyPair()
-	fmt.Print(tsk)
-	fmt.Print(tpk)
 
 	// Create each party and allocate the memory for all the shares that the protocols will need
 	P := genparties(params, N)
@@ -71,13 +69,47 @@ func getParameters(prnus [][][]PixelGray, N int) {
 
 	encOut := pcksPhase(params, tpk, encRes, P)
 	fmt.Printf("Size of result\t: NumRow: %d ciphertexts, NumCol: %d ciphertexts\n", len(encOut), len(encOut[0]))
-	/*
-		// Decrypt the result with the target secret key
-		fmt.Println("> Decrypt Phase")
-		decryptor := ckks.NewDecryptor(params, tsk)
-	*/
-	fmt.Print(encRes)
 
+	// Decrypt the result with the target secret key
+	fmt.Println("> Decrypt Phase")
+	decryptor := ckks.NewDecryptor(params, tsk)
+
+	ptres := make([][]*ckks.Plaintext, len(encOut))
+	for i := range encOut {
+		ptres[i] = make([]*ckks.Plaintext, len(encOut[i]))
+		for j := range encOut[i] {
+			ptres[i][j] = ckks.NewPlaintext(params, 1, params.DefaultScale())
+		}
+	}
+
+	for i := range encOut {
+		for j := range encOut[i] {
+			decryptor.Decrypt(encOut[i][j], ptres[i][j])
+		}
+	}
+	fmt.Println("done")
+
+	fmt.Println("> Result:")
+	// Check the result
+	res := make([][]float64, P[0].NumRow)
+	for i := range ptres {
+		res[i] = make([]float64, P[0].NumCol)
+	}
+	//fmt.Printf("size res: Row %d x Col %d\n", len(ptres), len(ptres[0]))
+	//fmt.Printf("size res: Row %d x Col %d\n", len(res), len(res[0]))
+
+	for i := range ptres {
+		for j := range ptres[i] {
+			partialRes := encoder.DecodeCoeffs(ptres[i][j])
+			for k := range partialRes {
+				res[i][(j*len(partialRes) + k)] = partialRes[k]
+			}
+		}
+	}
+
+	fmt.Println("finish")
+
+	return res
 }
 
 // Generates the invidividual secret key and "input images of size Num_Row x Num_Col" for each Forensic Party P[i]
@@ -294,7 +326,7 @@ func pcksPhase(params ckks.Parameters, tpk *rlwe.PublicKey, encRes [][]*ckks.Cip
 		for i := range encRes {
 			pi.pcksShare[i] = make([]*drlwe.PCKSShare, len(encRes[i]))
 			for j := range encRes[0] {
-				pi.pcksShare[i][j] = pcks.AllocateShare(params.LogQLvl(0))
+				pi.pcksShare[i][j] = pcks.AllocateShare(encRes[0][0].Level())
 			}
 		}
 	}
@@ -314,7 +346,7 @@ func pcksPhase(params ckks.Parameters, tpk *rlwe.PublicKey, encRes [][]*ckks.Cip
 		pcksCombined[i] = make([]*drlwe.PCKSShare, len(encRes[i]))
 		encOut[i] = make([]*ckks.Ciphertext, len(encRes[i]))
 		for j := range encRes[0] {
-			pcksCombined[i][j] = pcks.AllocateShare(params.LogQLvl(0))
+			pcksCombined[i][j] = pcks.AllocateShare(encRes[0][0].Level())
 			encOut[i][j] = ckks.NewCiphertext(params, 1, 1, params.DefaultScale())
 		}
 	}

@@ -81,6 +81,21 @@ func checkResults2(residual [][]PixelGray, pixK [][]PixelGray) {
 
 }
 
+func checkResults3(res [][]float64, agreg [][]PixelGray) {
+
+	for i := range res { // len(res) == len(agreg)
+		for j := range res[i] {
+			if res[i][j] != agreg[i][j].pix {
+				fmt.Printf("\tincorrect\n first error in position [%d][%d]\n", i, j)
+				return
+			}
+		}
+	}
+
+	fmt.Print("CORRECT RESULTS\n")
+
+}
+
 func printResults(c, index int, userName string) {
 
 	if c == 0 {
