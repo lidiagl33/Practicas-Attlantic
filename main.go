@@ -55,9 +55,9 @@ func main() {
 	agreg2 := agregation(prnusG, numUsers)
 	agreg3 := agregation(prnusR, numUsers)
 
-	checkResults3(res1, agreg1)
-	checkResults3(res2, agreg2)
-	checkResults3(res3, agreg3)
+	checkResults3(res1, agreg1, "B")
+	checkResults3(res2, agreg2, "G")
+	checkResults3(res3, agreg3, "R")
 
 	fmt.Print("\nFINISH\n")
 

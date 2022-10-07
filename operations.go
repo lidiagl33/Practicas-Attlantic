@@ -81,18 +81,34 @@ func checkResults2(residual [][]PixelGray, pixK [][]PixelGray) {
 
 }
 
-func checkResults3(res [][]float64, agreg [][]PixelGray) {
+func checkResults3(res [][]float64, agreg [][]PixelGray, layer string) {
 
-	for i := range res { // len(res) == len(agreg)
-		for j := range res[i] {
-			if res[i][j] != agreg[i][j].pix {
-				fmt.Printf("\tincorrect\n first error in position [%d][%d]\n", i, j)
-				return
-			}
+	// res => Obtained result by encryption
+	// agreg => Expected result without enctyption
+
+	errorEncrypted := make([][]float64, len(res)) // len(res) == len(agreg)
+	for i := range res {
+		errorEncrypted[i] = make([]float64, len(res[0]))
+	}
+
+	for i := 0; i < len(res); i++ {
+		for j := 0; j < len(res[0]); j++ {
+			errorEncrypted[i][j] = agreg[i][j].pix - res[i][j]
 		}
 	}
 
-	fmt.Print("CORRECT RESULTS\n")
+	var averageError float64
+
+	// calculate de average error: add up all values / number of values
+	for i := 0; i < len(errorEncrypted); i++ {
+		for j := 0; j < len(errorEncrypted[0]); j++ {
+			averageError += errorEncrypted[i][j]
+		}
+	}
+
+	averageError = averageError / float64((len(errorEncrypted) * len(errorEncrypted[0])))
+
+	fmt.Printf("ERROR from layer %s OBTAINED = %f\n", layer, averageError)
 
 }
 
