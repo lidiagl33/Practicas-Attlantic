@@ -15,17 +15,17 @@ func calculatePRNU_1(layers []gocv.Mat, residuals *[][][]PixelGray) ([][][]Pixel
 	imgDenoised := gocv.NewMat()
 	defer imgDenoised.Close()
 
-	var arrayNum [][][]PixelGray // numerator [image][rows][columns] (of the multiplications)
+	var arrayNum [][][]PixelGray // numerator [image][rows][columns]
 	var arrayR [][][]PixelGray   // denominator
 
-	var originalSizes []image.Point
+	var originalSizes []image.Point // store the sizes of the images
 
 	var err error
 
 	for i := 0; i < len(layers); i++ {
 
 		// Y
-		originalImg, err = layers[i].ToImage() // must be coverted to image.Gray
+		originalImg, err = layers[i].ToImage() // it will be coverted to image.Gray to have values between 0 and 1
 		if err != nil {
 			return nil, nil, nil
 		}
@@ -34,7 +34,7 @@ func calculatePRNU_1(layers []gocv.Mat, residuals *[][][]PixelGray) ([][][]Pixel
 
 		for y := originalImg.Bounds().Min.Y; y < originalImg.Bounds().Max.Y; y++ {
 			for x := originalImg.Bounds().Min.X; x < originalImg.Bounds().Max.X; x++ {
-				imgGray.Set(x, y, originalImg.At(x, y)) // el Set ya convierte a color.Gray
+				imgGray.Set(x, y, originalImg.At(x, y)) // Set already converts into color.Gray
 			}
 		}
 
@@ -46,7 +46,7 @@ func calculatePRNU_1(layers []gocv.Mat, residuals *[][][]PixelGray) ([][][]Pixel
 		gocv.FastNlMeansDenoising(layers[i], &imgDenoised)
 
 		// X
-		denoisedImg, err = imgDenoised.ToImage() // image.Gray
+		denoisedImg, err = imgDenoised.ToImage() // it will be coverted to image.Gray to have values between 0 and 1
 		if err != nil {
 			return nil, nil, nil
 		}
@@ -55,16 +55,17 @@ func calculatePRNU_1(layers []gocv.Mat, residuals *[][][]PixelGray) ([][][]Pixel
 
 		for y := denoisedImg.Bounds().Min.Y; y < denoisedImg.Bounds().Max.Y; y++ {
 			for x := denoisedImg.Bounds().Min.X; x < denoisedImg.Bounds().Max.X; x++ {
-				denoisedImgGray.Set(x, y, denoisedImg.At(x, y)) // el Set ya convierte a color.Gray
+				denoisedImgGray.Set(x, y, denoisedImg.At(x, y)) // Set already converts into color.Gray
 			}
 		}
 
 		sizeDenoised := denoisedImgGray.Bounds().Size()
 
+		// convert images into array of pixels
 		var pixOri [][]PixelGray = pixelArrayGray(imgGray, sizeOriginal)         // Y
 		var pixDen [][]PixelGray = pixelArrayGray(denoisedImgGray, sizeDenoised) // X
 
-		pixRes := operateWithPixelsGray(pixOri, pixDen, "-") // W
+		pixRes := operateWithPixelsGray(pixOri, pixDen, "-") // W=Y-X
 		*residuals = append(*residuals, pixRes)
 
 		pixNumerador := operateWithPixelsGray(pixRes, pixDen, "*") // W*X
@@ -81,6 +82,8 @@ func calculatePRNU_1(layers []gocv.Mat, residuals *[][][]PixelGray) ([][][]Pixel
 
 func calculatePRNU_2(arrayNum [][][]PixelGray, arrayR [][][]PixelGray, maxLengthX int, maxLengthY int) ([][]PixelGray, [][]PixelGray) {
 
+	// make the summations in numerator and denominator to get the result
+
 	var pixSumNum = make([][]PixelGray, maxLengthY)
 	for i := 0; i < len(pixSumNum); i++ {
 		pixSumNum[i] = make([]PixelGray, maxLengthX)
@@ -90,15 +93,10 @@ func calculatePRNU_2(arrayNum [][][]PixelGray, arrayR [][][]PixelGray, maxLength
 		pixSumDen[i] = make([]PixelGray, maxLengthX)
 	}
 
-	//var sizeAux int
-
-	//var pixAuxNum, pixAuxDen [][]PixelGray
-
 	// len(arrayNum) == len(arrayR)
 	for i := 0; i < len(arrayNum); i++ {
 		for j := 0; j < len(arrayNum[i]); j++ {
 			for k := 0; k < len(arrayNum[i][j]); k++ {
-
 				pixSumNum[j][k].pix += arrayNum[i][j][k].pix
 			}
 		}
@@ -107,29 +105,17 @@ func calculatePRNU_2(arrayNum [][][]PixelGray, arrayR [][][]PixelGray, maxLength
 	for i := 0; i < len(arrayR); i++ {
 		for j := 0; j < len(arrayR[i]); j++ {
 			for k := 0; k < len(arrayR[i][j]); k++ {
-
 				pixSumDen[j][k].pix += arrayR[i][j][k].pix
 			}
 		}
 	}
 
-	/*for j := 0; j < (originalSizes[i].X * originalSizes[i].Y); j++ {
-
-		index := j + sizeAux
-		pixAuxNum = append(pixAuxNum, arrayNum[index])
-		pixAuxDen = append(pixAuxDen, arrayR[index])
-	}
-
-	pixSumNum = operateWithPixelsGray(pixAuxNum, pixSumNum, "+")
-	pixSumDen = operateWithPixelsGray(pixAuxDen, pixSumDen, "+")
-
-	sizeAux += (originalSizes[i].X) * (originalSizes[i].Y)
-	*/
-
 	return pixSumNum, pixSumDen
 }
 
 func calculateK(pixNum [][]PixelGray, pixDen [][]PixelGray) [][]PixelGray {
+
+	// make the final division to get the estimated prnu
 
 	var K [][]PixelGray
 
@@ -157,8 +143,8 @@ func checkPRNU_1(pixK [][]PixelGray, s string) {
 	}
 
 	fmt.Println(s)
-	fmt.Printf("números > 1: %d\n", mayor)
-	fmt.Printf("números < -1: %d\n\n", menor)
+	fmt.Printf("\tnumbers > 1: %d\n", mayor)
+	fmt.Printf("\tnumbers < -1: %d\n\n", menor)
 }
 
 func checkPRNU_2(img *image.Gray, pixK [][]PixelGray) {
@@ -169,6 +155,6 @@ func checkPRNU_2(img *image.Gray, pixK [][]PixelGray) {
 
 	res := scalarProduct(pix, pixK)
 
-	fmt.Printf("result: %f\n\n", res)
+	fmt.Printf("\tResult: %f\n\n", res)
 
 }

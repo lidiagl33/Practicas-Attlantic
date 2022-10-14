@@ -18,15 +18,16 @@ func extraction(images []gocv.Mat, userName string, check bool) [][][]PixelGray 
 	var layersG []gocv.Mat
 	var layersR []gocv.Mat
 
+	// iterate the images array to extract the channel of each image
 	for i := 0; i < numImg; i++ {
 
 		imgB := gocv.NewMat()
 		imgG := gocv.NewMat()
 		imgR := gocv.NewMat()
 
-		gocv.ExtractChannel(images[i], &imgB, 0)
-		gocv.ExtractChannel(images[i], &imgG, 1)
-		gocv.ExtractChannel(images[i], &imgR, 2)
+		gocv.ExtractChannel(images[i], &imgB, 0) // channel B
+		gocv.ExtractChannel(images[i], &imgG, 1) // channel G
+		gocv.ExtractChannel(images[i], &imgR, 2) // channel R
 
 		layersB = append(layersB, imgB)
 		layersG = append(layersG, imgG)
@@ -34,15 +35,16 @@ func extraction(images []gocv.Mat, userName string, check bool) [][][]PixelGray 
 
 	}
 
-	// CALCULATE THE NUMERATOR AND DENOMINATOR WITHOUT THE ADDITION
+	// CALCULATE THE NUMERATOR AND DENOMINATOR WITHOUT THE SUMMATION
 
 	arrayNum1, arrayR1, originalSizes := calculatePRNU_1(layersB, &residualsB) // B
 	arrayNum2, arrayR2, originalSizes := calculatePRNU_1(layersG, &residualsG) // G
 	arrayNum3, arrayR3, originalSizes := calculatePRNU_1(layersR, &residualsR) // R
 
+	// in case there are images of different sizes, we will choose the bigger size to work with
 	maxLengthX, maxLengthY := calculateMaxLength(originalSizes)
 
-	// ADDITION OF THE NUMERATOR AND DENOMINATOR
+	// SUMMATION OF THE NUMERATOR AND DENOMINATOR
 
 	var pixSumNum1 = make([][]PixelGray, maxLengthY)
 	for i := 0; i < len(pixSumNum1); i++ {
@@ -82,6 +84,8 @@ func extraction(images []gocv.Mat, userName string, check bool) [][][]PixelGray 
 	pixK3 := calculateK(pixSumNum3, pixSumDen3) // PRNU R
 
 	arrayPRNUs := [][][]PixelGray{pixK1, pixK2, pixK3}
+
+	// VERIFY THE RESULTS (in case the flag "check" = true)
 
 	if check {
 

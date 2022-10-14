@@ -9,22 +9,14 @@ import (
 
 func scalarProduct(pix, k [][]PixelGray) [][]PixelGray {
 
-	//var result float64
-
 	result := operateWithPixelsGray(pix, k, "*")
-
-	/*for i := 0; i < len(pixMult); i++ {
-
-		result += pixMult[i].pix
-
-	}*/
 
 	return result
 }
 
 func calculateMaxLength(originalSizes []image.Point) (int, int) {
 
-	// maximum lenght of the images among all of them
+	// calculate the maximum lenght of the images among all of them
 
 	var maxLenghtX int
 	var maxLenghtY int
@@ -47,6 +39,8 @@ func calculateMaxLength(originalSizes []image.Point) (int, int) {
 }
 
 func convertToGray(img image.Image) *image.Gray {
+
+	// convert an RGBA image into Gray image
 
 	imgGray := image.NewGray(img.Bounds())
 
@@ -77,14 +71,14 @@ func checkResults2(residual [][]PixelGray, pixK [][]PixelGray) {
 
 	res := scalarProduct(residual, pixK)
 
-	fmt.Printf("result: %f\n\n", res)
+	fmt.Printf("\tResult: %f\n\n", res)
 
 }
 
 func checkResults3(res [][]float64, agreg [][]PixelGray, layer string) {
 
 	// res => Obtained result by encryption
-	// agreg => Expected result without enctyption
+	// agreg => Expected result without encryption
 
 	errorEncrypted := make([][]float64, len(res)) // len(res) == len(agreg)
 	for i := range res {
@@ -116,23 +110,23 @@ func printResults(c, index int, userName string) {
 
 	if c == 0 {
 		fmt.Print("\n")
-		fmt.Println("--- SCALAR PRODUCT WITH PRNUs ---")
+		fmt.Println("\t--- SCALAR PRODUCT WITH PRNUs ---")
 		fmt.Print("\n")
 	} else if c == 1 {
-		fmt.Printf("--- checking prnu B%d ---", index+1)
+		fmt.Printf("\t--- checking prnu B%d ---", index+1)
 		fmt.Print("\n")
 	} else if c == 2 {
-		fmt.Printf("--- checking prnu G%d ---", index+1)
+		fmt.Printf("\t--- checking prnu G%d ---", index+1)
 		fmt.Print("\n")
 	} else if c == 3 {
-		fmt.Printf("--- checking prnu R%d ---", index+1)
+		fmt.Printf("\t--- checking prnu R%d ---", index+1)
 		fmt.Print("\n")
 	} else if c == 4 {
 		fmt.Print("\n")
-		fmt.Println("--- SCALAR PRODUCT WITH RESIDUALS ---")
+		fmt.Println("\t--- SCALAR PRODUCT WITH RESIDUALS ---")
 		fmt.Print("\n")
 	} else if c == 5 {
-		fmt.Printf("----------------------------------------- USER: %q -------------------------------------------\n\n", userName)
+		fmt.Printf("\t-.-.-.-.-.-.-.-.- USER: %q -.-.-.-.-.-.-.-.-\n\n", userName)
 	}
 
 }

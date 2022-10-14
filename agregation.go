@@ -2,18 +2,16 @@ package main
 
 func agregation(prnus [][][]PixelGray, numUsers int) [][]PixelGray {
 
-	// addition PRNUs / number of users
+	// OPERATION TO MAKE: addition PRNUs / number of users
 
-	var numerator = make([][]PixelGray, len(prnus[0])) // sumatorio prnus
+	var numerator = make([][]PixelGray, len(prnus[0])) // summation prnus
 	for i := 0; i < len(numerator); i++ {
 		numerator[i] = make([]PixelGray, len(prnus[0][0]))
 	}
 
-	// i users, j rows, k columns
 	for i := 0; i < len(prnus); i++ { // len(prnus) = numUsers
 		for j := 0; j < len(prnus[i]); j++ {
 			for k := 0; k < len(prnus[i][j]); k++ {
-
 				numerator[j][k].pix += prnus[i][j][k].pix
 			}
 		}
@@ -26,7 +24,7 @@ func agregation(prnus [][][]PixelGray, numUsers int) [][]PixelGray {
 
 	for i := 0; i < len(result); i++ {
 		for j := 0; j < len(result[0]); j++ {
-			result[i][j].pix = numerator[i][j].pix / float64(numUsers)
+			result[i][j].pix = numerator[i][j].pix / float64(numUsers) // final values
 		}
 	}
 

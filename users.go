@@ -10,7 +10,7 @@ import (
 
 func getData() (map[string][]gocv.Mat, int, []string) {
 
-	var data = make(map[string][]gocv.Mat)
+	var data = make(map[string][]gocv.Mat) // [userName][arrayOfImages]
 	var numUsers int
 	var nameUsers []string
 
@@ -20,7 +20,7 @@ func getData() (map[string][]gocv.Mat, int, []string) {
 		var filesNames []string
 		var images []gocv.Mat
 
-		nameDir := "user" + strconv.Itoa(i+1)
+		nameDir := "user" + strconv.Itoa(i+1) // we assume the format "user1" for the folders containing the images
 		nameUsers = append(nameUsers, nameDir)
 
 		if fileExists(nameDir) {
@@ -33,7 +33,7 @@ func getData() (map[string][]gocv.Mat, int, []string) {
 				return nil, 0, nil
 			}
 
-			files, err := dir.Readdir(0)
+			files, err := dir.Readdir(0) // read all the files inside the folder
 			if err != nil {
 				fmt.Println(err)
 				return nil, 0, nil
@@ -44,14 +44,14 @@ func getData() (map[string][]gocv.Mat, int, []string) {
 			}
 
 			for z := 0; z < len(filesNames); z++ {
-				fmt.Printf("loading %q\n", nameDir+"/"+filesNames[z])
-				img := gocv.IMRead(nameDir+"/"+filesNames[z], gocv.IMReadColor)
+				fmt.Printf("\tLoading %q\n", nameDir+"/"+filesNames[z])
+				img := gocv.IMRead(nameDir+"/"+filesNames[z], gocv.IMReadColor) // read the image
 				images = append(images, img)
 			}
 
 			data[nameDir] = images
 
-			fmt.Printf("\nimages of %q loaded\n\n", nameDir)
+			fmt.Printf("\nImages of %q loaded\n\n", nameDir)
 
 		}
 
