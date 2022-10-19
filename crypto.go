@@ -65,7 +65,7 @@ func encryption(prnus [][][]PixelGray, N int) [][]float64 {
 	// Homomorphic additions of the ciphertexts to obtain the ENCODED AGGREGATION
 	encRes := evalPhase(params, encInputs) // matrix of ciphertexts
 
-	// key switching portocol -> encode over tpk
+	// key switching protocol -> encode over tpk
 	encOut := pcksPhase(params, tpk, encRes, P) // matrix of ciphertexts
 
 	// Decrypt the result with the target secret key
