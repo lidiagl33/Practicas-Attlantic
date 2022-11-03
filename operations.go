@@ -7,9 +7,17 @@ import (
 	"gocv.io/x/gocv"
 )
 
-func scalarProduct(pix, k [][]PixelGray) [][]PixelGray {
+func scalarProduct(pix, k [][]PixelGray) float64 {
 
-	result := operateWithPixelsGray(pix, k, "*")
+	var result float64
+
+	pixMult := operateWithPixelsGray(pix, k, "*")
+
+	for i := 0; i < len(pixMult); i++ {
+		for j := 0; j < len(pixMult[0]); j++ {
+			result += pixMult[i][j].pix
+		}
+	}
 
 	return result
 }
