@@ -103,6 +103,12 @@ func encryption(prnus [][][]PixelGray, N int) [][]float64 {
 		}
 	}
 
+	for i := 0; i < len(res); i++ {
+		for j := 0; j < len(res[0]); j++ {
+			res[i][j] = res[i][j] / float64(N)
+		}
+	}
+
 	fmt.Print("\n> Finish Encryption\n\n")
 
 	return res

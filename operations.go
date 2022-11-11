@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"image"
+	"math"
 
 	"gocv.io/x/gocv"
 )
@@ -10,6 +11,18 @@ import (
 func scalarProduct(pix, k [][]PixelGray) float64 {
 
 	var result float64
+
+	for i := 0; i < len(pix); i++ {
+		for j := 0; j < len(pix[0]); j++ {
+			pix[i][j].pix = 1
+		}
+	}
+
+	for i := 0; i < len(k); i++ {
+		for j := 0; j < len(k[0]); j++ {
+			k[i][j].pix = 1
+		}
+	}
 
 	pixMult := operateWithPixelsGray(pix, k, "*")
 
@@ -83,34 +96,67 @@ func checkResults2(residual [][]PixelGray, pixK [][]PixelGray) {
 
 }
 
-func checkResults3(res [][]float64, agreg [][]PixelGray, layer string) {
+func checkResults3(res [][]float64, agreg [][]PixelGray, averageK float64, layer string) {
 
-	// res => Obtained result by encryption
-	// agreg => Expected result without encryption
+	// res => with encryption
+	// agreg => without encryption
 
-	errorEncrypted := make([][]float64, len(res)) // len(res) == len(agreg)
+	absoluteError := make([][]float64, len(res)) // len(res) == len(agreg)
 	for i := range res {
-		errorEncrypted[i] = make([]float64, len(res[0]))
+		absoluteError[i] = make([]float64, len(res[0]))
 	}
 
 	for i := 0; i < len(res); i++ {
 		for j := 0; j < len(res[0]); j++ {
-			errorEncrypted[i][j] = agreg[i][j].pix - res[i][j]
+			absoluteError[i][j] = math.Abs(agreg[i][j].pix - res[i][j])
 		}
 	}
 
-	var averageError float64
+	var averageAbsoluteError, relativeError float64
+
+	for i := 0; i < len(absoluteError); i++ {
+		for j := 0; j < len(absoluteError[0]); j++ {
+			averageAbsoluteError += absoluteError[i][j]
+		}
+	}
+
+	averageAbsoluteError = averageAbsoluteError / float64((len(absoluteError) * len(absoluteError[0])))
+
+	relativeError = averageAbsoluteError / averageK
+
+	//var absoluteError float64
+	/*var averageRelativeError float64
 
 	// calculate de average error: add up all values / number of values
-	for i := 0; i < len(errorEncrypted); i++ {
+	/*for i := 0; i < len(errorEncrypted); i++ {
 		for j := 0; j < len(errorEncrypted[0]); j++ {
-			averageError += errorEncrypted[i][j]
+			absoluteError += errorEncrypted[i][j]
+		}
+	}*/
+
+	//averageAbsoluteError = averageAbsoluteError / float64((len(errorEncrypted) * len(errorEncrypted[0])))
+	//averageRelativeError = absoluteError / averageAgreg
+
+	/*relativeError := make([][]float64, len(absoluteError)) // len(res) == len(agreg)
+	for i := range res {
+		relativeError[i] = make([]float64, len(absoluteError[0]))
+	}
+
+	for i := 0; i < len(absoluteError); i++ {
+		for j := 0; j < len(absoluteError[0]); j++ {
+			relativeError[i][j] = absoluteError[i][j] / averageAgreg
 		}
 	}
 
-	averageError = averageError / float64((len(errorEncrypted) * len(errorEncrypted[0])))
+	for i := 0; i < len(relativeError); i++ {
+		for j := 0; j < len(relativeError[0]); j++ {
+			averageRelativeError += relativeError[i][j]
+		}
+	}
 
-	fmt.Printf("ERROR from layer %s OBTAINED = %f\n", layer, averageError)
+	averageRelativeError = averageRelativeError / float64((len(relativeError) * len(relativeError[0])))*/
+
+	fmt.Printf("ERROR from layer %s OBTAINED = %f\n", layer, relativeError)
 
 }
 

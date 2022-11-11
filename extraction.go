@@ -3,6 +3,8 @@ package main
 import (
 	"C"
 
+	"image"
+
 	"gocv.io/x/gocv"
 )
 
@@ -133,6 +135,81 @@ func extraction(images []gocv.Mat, userName string, check bool) [][][]PixelGray 
 		for i := 0; i < len(residualsR); i++ {
 			printResults(3, i, "")
 			checkResults2(residualsR[i], pixK3)
+		}
+
+		// result with different image
+		imgDif := gocv.IMRead("Images_MATLAB/Pxxx.jpg", gocv.IMReadColor)
+		imgDifB := gocv.NewMat()
+		imgDifG := gocv.NewMat()
+		imgDifR := gocv.NewMat()
+		gocv.ExtractChannel(imgDif, &imgDifB, 0)
+		gocv.ExtractChannel(imgDif, &imgDifG, 1)
+		gocv.ExtractChannel(imgDif, &imgDifR, 2)
+		imgDifBDenoised := gocv.NewMat()
+		imgDifGDenoised := gocv.NewMat()
+		imgDifRDenoised := gocv.NewMat()
+		gocv.FastNlMeansDenoising(imgDifB, &imgDifBDenoised)
+		gocv.FastNlMeansDenoising(imgDifG, &imgDifGDenoised)
+		gocv.FastNlMeansDenoising(imgDifR, &imgDifRDenoised)
+		imB, err := imgDifB.ToImage()
+		if err != nil {
+			return nil
+		}
+		imG, err := imgDifB.ToImage()
+		if err != nil {
+			return nil
+		}
+		imR, err := imgDifB.ToImage()
+		if err != nil {
+			return nil
+		}
+		imgBGray := image.NewGray(imB.Bounds())
+		imgGGray := image.NewGray(imG.Bounds())
+		imgRGray := image.NewGray(imR.Bounds())
+		for y := imB.Bounds().Min.Y; y < imB.Bounds().Max.Y; y++ {
+			for x := imB.Bounds().Min.X; x < imB.Bounds().Max.X; x++ {
+				imgBGray.Set(x, y, imB.At(x, y)) // Set already converts into color.Gray
+			}
+		}
+		for y := imG.Bounds().Min.Y; y < imG.Bounds().Max.Y; y++ {
+			for x := imG.Bounds().Min.X; x < imG.Bounds().Max.X; x++ {
+				imgGGray.Set(x, y, imG.At(x, y)) // Set already converts into color.Gray
+			}
+		}
+		for y := imR.Bounds().Min.Y; y < imR.Bounds().Max.Y; y++ {
+			for x := imR.Bounds().Min.X; x < imR.Bounds().Max.X; x++ {
+				imgRGray.Set(x, y, imR.At(x, y)) // Set already converts into color.Gray
+			}
+		}
+		denoisedImgB, err := imgDifBDenoised.ToImage()
+		if err != nil {
+			return nil
+		}
+		denoisedImgG, err := imgDifGDenoised.ToImage()
+		if err != nil {
+			return nil
+		}
+		denoisedImgR, err := imgDifRDenoised.ToImage()
+		if err != nil {
+			return nil
+		}
+		denoisedBimgGray := image.NewGray(denoisedImgB.Bounds())
+		denoisedGimgGray := image.NewGray(denoisedImgG.Bounds())
+		denoisedRimgGray := image.NewGray(denoisedImgR.Bounds())
+		for y := denoisedImgB.Bounds().Min.Y; y < denoisedImgB.Bounds().Max.Y; y++ {
+			for x := denoisedImgB.Bounds().Min.X; x < denoisedImgB.Bounds().Max.X; x++ {
+				denoisedBimgGray.Set(x, y, denoisedImgB.At(x, y)) // Set already converts into color.Gray
+			}
+		}
+		for y := denoisedImgG.Bounds().Min.Y; y < denoisedImgG.Bounds().Max.Y; y++ {
+			for x := denoisedImgG.Bounds().Min.X; x < denoisedImgG.Bounds().Max.X; x++ {
+				denoisedGimgGray.Set(x, y, denoisedImgG.At(x, y)) // Set already converts into color.Gray
+			}
+		}
+		for y := denoisedImgR.Bounds().Min.Y; y < denoisedImgR.Bounds().Max.Y; y++ {
+			for x := denoisedImgR.Bounds().Min.X; x < denoisedImgR.Bounds().Max.X; x++ {
+				denoisedRimgGray.Set(x, y, denoisedImgR.At(x, y)) // Set already converts into color.Gray
+			}
 		}
 
 	}
